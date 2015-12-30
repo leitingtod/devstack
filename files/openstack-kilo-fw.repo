@@ -1,0 +1,18 @@
+[openstack-kilo-fw]
+name=OpenStack Kilo Repository
+baseurl=http://10.15.52.1/openstack/kilo
+skip_if_unavailable=0
+enabled=1
+keepcache=1
+plugins=0
+gpgcheck=0
+
+[openstack-kilo-el7]
+name=OpenStack Kilo Repository
+baseurl=http://10.15.52.1/openstack/el7
+skip_if_unavailable=0
+enabled=1
+keepcache=1
+plugins=0
+gpgcheck=0
+
