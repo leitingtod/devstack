@@ -1,5 +1,0 @@
-lvm2
-scsi-target-utils # NOPRIME
-qemu-img
-postgresql-devel
-iscsi-initiator-utils

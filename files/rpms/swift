@@ -1,7 +1,0 @@
-curl
-memcached
-pyxattr
-sqlite
-xfsprogs
-xinetd
-rsync-daemon # dist:f22,f23

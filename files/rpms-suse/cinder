@@ -1,6 +1,0 @@
-lvm2
-tgt # NOPRIME
-qemu-tools
-python-devel
-postgresql-devel
-open-iscsi
