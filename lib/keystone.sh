@@ -213,7 +213,8 @@ function deploy_keystone {
         local install_success=$?
         if [[ $install_success == 1 ]]; then
             config_keystone
-            new_env_run "create_account"
+            #new_env_run "create_account"
+            create_account
             verify_keystone
             iniset $NODE_FILE state keystone done
         fi
@@ -228,6 +229,16 @@ function create_account {
     head2 "创建 Keystone Service & Endpoints"
 
     config_keystone_openrc
+
+    while [[ $(openstack project list; echo $?) != 0 ]]; do
+        ((RETRY_TIMES++))
+        if [[ $RETRY_TIMES == $RETRY_TIMES_MAX ]]; then
+            RETRY_TIMES=0
+            perror "Keystone服务无法正常使用， 无奈退出！"
+            exit 1
+        fi
+        systemctl restart httpd
+    done
 
     create_service keystone "OpenStack Identity" identity
 

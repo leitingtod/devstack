@@ -493,5 +493,5 @@ if [[ -n "$NOUNSET" ]]; then
     set -o nounset
 fi
 
-VERSION=1.2.0
+VERSION=1.1.8
 main $@
