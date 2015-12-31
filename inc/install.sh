@@ -7,7 +7,7 @@ function install_package {
 function is_service_installed {
     local is_all_installed=1
     for pkg in $@; do
-        if [[ $(yum list installed|grep $pkg) == '' ]]; then
+        if [[ $(rpm -q --quiet $pkg; echo $?) != 0 ]]; then
             is_all_installed=0
             break
         fi
@@ -41,7 +41,7 @@ function install_service_package {
             ((RETRY_TIMES++))
             if [[ $RETRY_TIMES == $RETRY_TIMES_MAX ]]; then
                 RETRY_TIMES=0
-                return $is_installed
+                exit 1
             fi
 
             deploy_openstack_release centos
@@ -66,7 +66,7 @@ function create_systemd_unit {
 
     local snetwork='openvswitch openvswitch-nonetwork neutron-openvswitch-agent neutron-l3-agent neutron-dhcp-agent neutron-metadata-agent'
 
-    local scinder='lvm2-lvmetad openstack-cinder-volume target'
+    local scinder='openstack-cinder-volume target'
     local services=
     local node_type=$NODE_TYPE
     if [[ $SUB_NODE_TYPE == allin1 ]]; then
@@ -113,10 +113,10 @@ Type=oneshot
 ExecStart=/usr/bin/bash -c \"$TOP_DIR/stack.sh -t $node_type --restart networking\"
 
 [Install]
-WantedBy=multi-user.target" > /usr/lib/systemd/system/devstack.service
+WantedBy=multi-user.target"
 }
 
 function systemd_service_install {
-    create_systemd_unit
+    create_systemd_unit > /usr/lib/systemd/system/devstack.service
     systemctl enable devstack.service
 }
