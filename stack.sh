@@ -134,20 +134,17 @@ function exit_clean {
 }
 
 function usage {
-    local node_types=$NODE_TYPE_LIST+allin1
-    if [[ $(is_str_in_list $NODE_TYPE $node_types) == 'no' ]]; then
-        cecho -y "\n用法：" -b "sudo ./stack.sh -t|--type 结点类型 command\n"
-        cecho -b "必选参数：" -g "\e-t" -b -B "|" -B  -g "--type" -b " 结点类型"
-        cecho -b -iv "必选参数：" -d -b "指定结点类型，""结点类型：" -g "controller" -b -B "|" -B  -g "compute" -b -B "|" -B -g  "network" -b -B "|" -B -g  "cinder"  -b -B "|" -B -g "allin1" -n
+    cecho -y "\n用法：" -b "sudo ./stack.sh -t|--type 结点类型 command\n"
+    cecho -b "必选参数：" -g "\e-t" -b -B "|" -B  -g "--type" -b " 结点类型"
+    cecho -b -iv "必选参数：" -d -b "指定结点类型，""结点类型：" -g "controller" -b -B "|" -B  -g "compute" -b -B "|" -B -g  "network" -b -B "|" -B -g  "cinder"  -b -B "|" -B -g "allin1" -n
 
-        cecho -b "可选参数：" -d -g  "-h | --help" -b " 帮助"
-        cecho -b "可选参数：" -d -g  "-r | --restart" -b " 服务"
-        cecho -b -t -B -B -B -B "重启指定服务，""结点类型：" -g "glance" -b -B "|" -B  -g "nova" -b -B "|" -B -g  "neutron" -b -B "|" -B -g  "cinder"  -b -B "|" -B -g  "horizon" -n
-        cecho -b "可选命令：" -g "auto" -t -t -b "不进入交互模式"
-        cecho -b -iv "可选命令：" -d -g  "reconf" -t -b "重新配置"
-        cecho -b -iv "可选命令：" -d -g  "verify " -t -b "仅验证，不修改已有配置\n"
-        return
-    fi
+    cecho -b "可选参数：" -d -g  "-h | --help" -b " 帮助"
+    cecho -b "可选参数：" -d -g  "-r | --restart" -b " 服务"
+    cecho -b -iv "可选参数：" -d -b "重启指定服务，""结点类型：" -g "glance" -b -B "|" -B  -g "nova" -b -B "|" -B -g  "neutron" -b -B "|" -B -g  "cinder"  -b -B "|" -B -g  "horizon" -n
+    cecho -b "可选命令：" -g "auto" -t -t -b "不进入交互模式"
+    cecho -b -iv "可选命令：" -d -g  "reconf" -t -b "重新配置"
+    cecho -b -iv "可选命令：" -d -g  "verify " -t -b "仅验证，不修改已有配置\n"
+    exit 1
 }
 
 function select_mode {
@@ -400,12 +397,20 @@ function main {
         ((index++))
         case $opt in
             --type|-t)
-                NODE_TYPE=${!index};;
+                NODE_TYPE=${!index}
+                if [[ $(is_str_in_list $NODE_TYPE $opt_value_list) == 'no' ]]; then
+                    prompt err "\n错误的结点类型" "$NODE_TYPE" "！"
+                    usage
+                fi
+                ;;
             --yum|-y)
-                YUM_REPO=${!index};;
+                YUM_REPO=${!index}
+                if [[ $(is_str_in_list $YUM_REPO $opt_value_list) == 'no' ]]; then
+                    prompt err "\n错误的服务类型" "$RESTART" "！"
+                    usage
+                fi;;
             --help|-h)
-                usage
-                exit 1;;
+                usage;;
             --version|-v)
                 cecho -n -b "DevStack " -y "$VERSION" -n
                 exit 1;;
@@ -416,7 +421,11 @@ function main {
             verify)
                 VERIFY=yes;;
             --restart|-r)
-                RESTART=${!index};;
+                RESTART=${!index}
+                if [[ $(is_str_in_list $RESTART $opt_value_list) == 'no' ]]; then
+                    prompt err "\n错误的服务类型" "$RESTART" "！"
+                    usage
+                fi;;
             debug)
                 DEBUG=yes;;
             debug-opt)
@@ -432,7 +441,6 @@ function main {
                 if [[ $(is_str_in_list $opt $opt_value_list) == 'no' ]]; then
                     prompt err "\n错误的参数" "$opt" "！"
                     usage
-                    exit 1
                 else
                     continue
                 fi;;
@@ -448,7 +456,7 @@ function main {
         rpm -i $TOP_DIR/files/highlight-3.13-3.el7.x86_64.rpm > /dev/null
     fi
 
-    [[ $NODE_TYPE == '' ]] && usage
+    [[ $DEBUG == 'yes' ]] && test_environment|highlight --src-lang=ini -O ansi
 
     [[ -e $LOG_DIR ]] || mkdir -p $LOG_DIR
 
@@ -457,8 +465,6 @@ function main {
     [[ $DEBUG_ALLIN1 == 'yes' ]] && CONF_FILE=$LOG_DIR/local.conf
 
     [[ $DEBUG_ALLIN1 == 'yes' && ! -e $CONF_FILE ]] && cp $TOP_DIR/local.conf $CONF_FILE
-
-    [[ $DEBUG == 'yes' ]] && test_environment|highlight --src-lang=ini -O ansi
 
     if [[ $NODE_TYPE == 'allin1' ]]; then
         NODE_TYPE=controller
@@ -493,5 +499,5 @@ if [[ -n "$NOUNSET" ]]; then
     set -o nounset
 fi
 
-VERSION=1.1.8
+VERSION=1.1.9
 main $@

@@ -230,7 +230,8 @@ function create_account {
 
     config_keystone_openrc
 
-    while [[ $(openstack project list; echo $?) != 0 ]]; do
+    openstack project list > /dev/null 2>/dev/null
+    while [ $? != 0 ]; do
         ((RETRY_TIMES++))
         if [[ $RETRY_TIMES == $RETRY_TIMES_MAX ]]; then
             RETRY_TIMES=0
